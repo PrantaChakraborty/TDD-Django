@@ -15,10 +15,10 @@ class GetAllPuppiesTest(TestCase):
     testcase to get all the puppies
     """
     def setUp(self) -> None:
-        Puppy.objects.create(name='Casper', age=3, breed='Bull Dog', color='Black')
-        Puppy.objects.create(name='Muffin', age=1, breed='Gradane', color='Brown')
-        Puppy.objects.create(name='Rambo', age=2, breed='Labrador', color='Black')
-        Puppy.objects.create(name='Ricky', age=6, breed='Labrador', color='Brown')
+        self.casper = Puppy.objects.create(name='Casper', age=3, breed='Bull Dog', color='Black')
+        self.muffin = Puppy.objects.create(name='Muffin', age=1, breed='Gradane', color='Brown')
+        self.rambo = Puppy.objects.create(name='Rambo', age=2, breed='Labrador', color='Black')
+        self.ricky = Puppy.objects.create(name='Ricky', age=6, breed='Labrador', color='Brown')
 
     def test_get_puppies(self):
         response = client.get(reverse('puppies-list'))
@@ -26,3 +26,17 @@ class GetAllPuppiesTest(TestCase):
         serializer = PuppySerializer(puppies, many=True)
         self.assertEqual(response.data, {"data": serializer.data})   # check the data
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_single_valid_puppy(self):
+        response = client.get(reverse('puppies-detail', kwargs={'pk': self.rambo.pk}))
+        puppy = Puppy.objects.get(id=self.rambo.pk)
+        serializer = PuppySerializer(puppy)
+        self.assertEqual(response.data, {"data": serializer.data})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_get_single_invalid_puppy(self):
+        response = client.get(reverse('puppies-detail', kwargs={'pk': 30}))
+        self.assertEqual(response.data, {"data": []})
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
