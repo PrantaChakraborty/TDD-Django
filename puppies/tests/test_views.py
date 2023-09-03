@@ -10,7 +10,7 @@ from ..serializers import PuppySerializer
 client = Client()
 
 
-class GetAllPuppiesTest(TestCase):
+class PuppiesAPIViewSetTest(TestCase):
     """
     testcase to get all the puppies
     """
@@ -19,6 +19,19 @@ class GetAllPuppiesTest(TestCase):
         self.muffin = Puppy.objects.create(name='Muffin', age=1, breed='Gradane', color='Brown')
         self.rambo = Puppy.objects.create(name='Rambo', age=2, breed='Labrador', color='Black')
         self.ricky = Puppy.objects.create(name='Ricky', age=6, breed='Labrador', color='Brown')
+
+        self.valid_payload = {
+            'name': 'Muffin',
+            'age': 4,
+            'breed': 'Pamerion',
+            'color': 'White'
+        }
+        self.invalid_payload = {
+            'name': '',
+            'age': 4,
+            'breed': 'Pamerion',
+            'color': 'White'
+        }
 
     def test_get_puppies(self):
         response = client.get(reverse('puppies-list'))
@@ -38,5 +51,17 @@ class GetAllPuppiesTest(TestCase):
         response = client.get(reverse('puppies-detail', kwargs={'pk': 30}))
         self.assertEqual(response.data, {"data": []})
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_valid_puppy(self):
+        response = client.post(reverse('puppies-list'),
+                               data=json.dumps(self.valid_payload),
+                               content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_create_invalid_puppy(self):
+        response = client.post(reverse('puppies-list'),
+                               data=json.dumps(self.invalid_payload),
+                               content_type='application/json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
 
